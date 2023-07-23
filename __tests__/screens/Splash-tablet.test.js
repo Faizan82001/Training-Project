@@ -1,0 +1,44 @@
+import React from 'react';
+import {render} from '@testing-library/react-native';
+import SplashScreen from '../../src/screens/SplashScreen';
+import {getToken} from '../../utils/controllers/asyncStorageController';
+
+const navigation = {
+  replace: jest.fn(),
+};
+
+jest.mock('react-native/Libraries/Utilities/Dimensions', () => {
+  return {
+    get: param => {
+      if (param === 'window') {
+        return {
+          width: 1000,
+          height: 1000,
+        };
+      }
+    },
+  };
+});
+
+jest.mock('../../utils/controllers/asyncStorageController', () => ({
+  getToken: jest.fn(),
+}));
+jest.mock('../../utils/toast.js', () => jest.fn());
+jest.mock('react-native-root-toast', () => ({
+  durations: {
+    LONG: 'long',
+  },
+}));
+
+describe('SplashScreen', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('navigates to the HomeScreen if a user token exists in AsyncStorage in tablet', async () => {
+    getToken.mockResolvedValueOnce('test-token');
+    render(<SplashScreen navigation={navigation} />);
+    await expect(getToken).toHaveBeenCalledWith(navigation);
+    expect(navigation.replace).toHaveBeenCalledWith('HomeScreen');
+  });
+});
